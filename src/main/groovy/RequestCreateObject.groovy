@@ -9,7 +9,7 @@ import javax.xml.ws.http.HTTPException
 
 @Slf4j
 class RequestCreateObject {
-    void requestCreateObject(Map<String, String> authorizationAndURI, String pathToCreateObject, String createObjJsonString) throws HTTPException {
+    void requestCreateObject(Map<String, String> authorizationAndURI, String pathToCreateObject, Object createObjJsonString) throws HTTPException {
         def http = new HTTPBuilder((Object) authorizationAndURI.get("inURI"))
         http.request(Method.POST, ContentType.JSON) {
             request ->

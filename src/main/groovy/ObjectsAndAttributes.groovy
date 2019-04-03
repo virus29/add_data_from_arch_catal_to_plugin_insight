@@ -1,5 +1,5 @@
-
-
+import dto.get_all_objects.JsonGetAllObjects
+import dto.update_object.JsonUpdateObjectDTO
 import groovy.util.logging.Slf4j
 import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
@@ -7,49 +7,72 @@ import groovyx.net.http.Method
 
 @Slf4j
 class ObjectsAndAttributes {
-    TransferObject getIdAttributesAndAllObjects(Map authorizationAndURI, String pathAllObjects, String bodyGetAllObjects, Map nameAttributesObjectType, String pathAllIdAttributes) {
-        Map<String, String> mapIdAttributesObjectType = new HashMap<String, String>()
-        List<String> idObjectsList = new ArrayList<String>()
-        def http = new HTTPBuilder(authorizationAndURI.get("inURI"))
 
+    private int idObjectScheme = new ObjectScheme().getIdObjectScheme()        //= "22"
+    private int idObjectType = new ObjectType().getIdObjectType(idObjectScheme)  //= "21"
+
+    Map getIdAttributesOfObjectType() {
+        String pathAllIdAttributes = "/rest/insight/1.0/objecttype/$idObjectType/attributes/"
+        Map<String, String> mapIdAttributesObjectType = new HashMap<String, String>()
+        def http = new HTTPBuilder(SaveChangesToPluginIsight.inURI)
         http.request(Method.GET, ContentType.JSON) {
             req ->
-                headers.'Authorization' = authorizationAndURI.get("authorization")
+                uri = pathAllIdAttributes
+                headers.'Authorization' = AuthorizationParameters.BasicAuthorization
                 headers.'Accept' = 'application/json;charset=UTF-8'
                 response.success = { resp, json ->
                     json.each {
-                        if (it.name.equals(nameAttributesObjectType.get("nameAttributeIdObjectType"))) {
+                        if (it.name.equals(SaveChangesToPluginIsight.nameAttributeIdObjectType)) {
                             mapIdAttributesObjectType.put("idAttributeIdObjectType", (String) it.id)
                         }
-                        if (it.name.equals(nameAttributesObjectType.get("nameAttributeNameObjectType"))) {
+                        if (it.name.equals(SaveChangesToPluginIsight.nameAttributeNameObjectType)) {
                             mapIdAttributesObjectType.put("idAttributeNameObjectType", (String) it.id)
                         }
-                        if (it.name.equals(nameAttributesObjectType.get("nameAttributeFullNameObjectType"))) {
+                        if (it.name.equals(SaveChangesToPluginIsight.nameAttributeFullNameObjectType)) {
                             mapIdAttributesObjectType.put("idAttributeFullNameObjectType", (String) it.id)
                         }
+                        //New element
+//                        if (it.name.equals(SaveChangesToPluginIsight.nameAttributeNNNNNNNNNNNNNNNNNNNNNNNNNNNObjectType)) {
+//                            mapIdAttributesObjectType.put("idAttributeNNNNNNNNNNNNNNNNNNNObjectType", (String) it.id)
+//                        }
                     }
                 }
                 response.failure = { resp ->
-                    log.error "Request Id Attribute failed with status " + resp.status
-                    int i=0
-                    resp.headers.each{
+                    log.error "Request Id UpdateAttributeOfObjectDTO failed with status " + resp.status
+                    int i = 0
+                    resp.headers.each {
                         i++
-                        log.error("Resonse header : "+i+" - "+it)}
+                        log.error("Resonse header : " + i + " - " + it)
+                    }
                     return "Request failed with status " + resp.status
                 }
         }
+        return mapIdAttributesObjectType
+    }
 
+    List getIdOfObjects() {
+        String pathAllObjects = "/rest/insight/1.0/object/navlist/iql"
+//        String bodyGetAllObjects = '{"objectTypeId":' + idObjectType + ',"objectSchemaId":' + idObjectScheme + ',"resultsPerPage": 1000,"includeAttributes": true}'
+
+        JsonGetAllObjects jsonGetAllObjects = new JsonGetAllObjects()
+        jsonGetAllObjects.setObjectTypeId(idObjectType)
+        jsonGetAllObjects.setResultsPerPage(1000)//устанавливаем по умолчанию
+        jsonGetAllObjects.setIncludeAttributes(true)//устанавливаем по умолчанию
+        jsonGetAllObjects.setObjectSchemaId(idObjectScheme)
+
+        List ObjectsList = new ArrayList<String>()
+        def http = new HTTPBuilder(SaveChangesToPluginIsight.inURI)
         http.request(Method.POST, ContentType.JSON,) {
             request ->
                 uri.path = pathAllObjects
-                headers.'Authorization' = authorizationAndURI.get("authorization")
-                body = bodyGetAllObjects
+                headers.'Authorization' = AuthorizationParameters.BasicAuthorization
+                body = jsonGetAllObjects
                 response.success = { resp, json ->
                     json.objectEntries.each {
-                        it.attributes.each{
-                            if(it.objectAttributeValues.value[0]!=null && (it.objectTypeAttributeId as String).equals(mapIdAttributesObjectType.get("idAttributeIdObjectType"))){
-                                idObjectsList.add((String)it.objectAttributeValues.value[0])
-                                log.info("attributeValues[0] = "+it.objectAttributeValues.value[0])
+                        it.setUpdateAttributeOfObjectDTOS.each {
+                            if (it.setUpdateObjectAttributeValueDTOS.value[0] != null && (it.objectTypeAttributeId).equals(mapIdAttributesObjectType.get("idAttributeIdObjectType"))) {
+                                idObjectsList.add((String) it.setUpdateObjectAttributeValueDTOS.value[0])
+                                log.info("attributeValues[0] = " + it.setUpdateObjectAttributeValueDTOS.value[0])
                             }
                         }
                     }
@@ -58,13 +81,19 @@ class ObjectsAndAttributes {
                 }
                 response.failure = { resp ->
                     log.error "Request Id Object failed with status " + resp.status
-                    int i=0
-                    resp.headers.each{
+                    int i = 0
+                    resp.headers.each {
                         i++
-                        log.error("Resonse header : "+i+" - "+it)}
+                        log.error("Resonse header : " + i + " - " + it)
+                    }
                     return "Request failed with status " + resp.status
                 }
         }
+        return idObjectsList
+    }
+
+    TransferObject getIdAttributesAndAllObjects(Map authorizationAndURI, String pathAllObjects, String bodyGetAllObjects, Map nameAttributesObjectType, idObjectType) {
+
         TransferObject to = new TransferObject()
         to.setIdObjectsList(idObjectsList)
         to.setMapIdAttributesObjectType(mapIdAttributesObjectType)

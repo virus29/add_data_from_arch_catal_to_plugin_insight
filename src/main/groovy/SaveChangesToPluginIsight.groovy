@@ -37,43 +37,30 @@ class SaveChangesToPluginIsight {
         }
     }
 
-    public static void main(String[] args) {
+    static final String username = "svc_asup"
+    static final String password = "P@ssw0rd"
+    static final String workstation = "JIRASUP2"
+    static final String domain = "PORTAL"
 
-        String username = "svc_asup"
-        String password = "P@ssw0rd"
-        String workstation = "JIRASUP2"
-        String domain = "PORTAL"
+    static final String inURI = "http://s39jira06.vip.cbr.ru:8094"
+    static final String pathArchitecturalCatalog = "http://simr.cbr.ru/sites/Dep_IT/Upr_AS/Otd_MITA/ITSolutions/_api/web/lists/GetByID('810f80a5-ffb3-4855-af9d-a692029b6b61')/items"
 
-        String authorization = "Basic ${"$username:$password".bytes.encodeBase64().toString()}"
-        String inURI = "http://s39jira06.vip.cbr.ru:8094"
+    static final String nameObjectScheme = "Temporary"
+    static final String nameObjectType = "TestUsersObjectType"
+    static final String nameAttributeIdObjectType = "ID_architectural_catalog"
+    static final String nameAttributeNameObjectType = "Name"
+    static final String nameAttributeFullNameObjectType = "Full name"
 
-        Map<String, String> authorizationAndURI = new HashMap<String, String>()
-        authorizationAndURI.put("authorization", authorization)
-        authorizationAndURI.put("inURI", inURI)
 
-        Map<String, String> ntlmAuthorization = new HashMap<String, String>()
-        ntlmAuthorization.put("username", username)
-        ntlmAuthorization.put("password", password)
-        ntlmAuthorization.put("workstation", workstation)
-        ntlmAuthorization.put("domain", domain)
+    static void main(String[] args) {
 
-        String nameObjectScheme = "Temporary"
-        String nameObjectType = "TestUsersObjectType"
-        String nameAttributeIdObjectType = "ID_architectural_catalog"
-        String nameAttributeNameObjectType = "Name"
-        String nameAttributeFullNameObjectType = "Full name"
-
-//String createJsonString = '{"objectTypeId":$idObjectType,"attributes":[{"objectTypeAttributeId":$idAttributeNameObjectType,"objectAttributeValues":[{"value": $valueAttributeNameObjectType}]},{"objectTypeAttributeId":$idAttributeFullNameObjectType,"objectAttributeValues":[{"value": $valueAttributeFullNameObjectType}]},{"objectTypeAttributeId":$idAttributeIdObjectType,"objectAttributeValues":[{"value": $valueAttributeIdObjectType}]}]}'
-        String pathAllObjectSchemas = "/rest/insight/1.0/objectschema/list/"
-        String idObjectScheme = new ObjectScheme().getIdObjectScheme(authorizationAndURI, pathAllObjectSchemas, nameObjectScheme) //= "22"
-
-        String pathAllObjectTypes = "/rest/insight/1.0/objectschema/$idObjectScheme/objecttypes/flat/"
-        String idObjectType = new ObjectTypes().getIdObjectType(authorizationAndURI, pathAllObjectTypes, nameObjectType) //= "21"
+        String idObjectScheme = new ObjectScheme().getIdObjectScheme()        //= "22"
+        def idObjectType = new ObjectType().getIdObjectType(idObjectScheme)  //= "21"
 
         String pathAllIdAttributes = "/rest/insight/1.0/objecttype/$idObjectType/attributes/"
 
         String pathAllObjects = "/rest/insight/1.0/object/navlist/iql"
-        String bodyGetAllObjects = '{"objectTypeId":'+idObjectType+',"objectSchemaId":'+idObjectScheme+',"resultsPerPage": 1000,"includeAttributes": true}'
+        String bodyGetAllObjects = '{"objectTypeId":' + idObjectType + ',"objectSchemaId":' + idObjectScheme + ',"resultsPerPage": 1000,"includeAttributes": true}'
         String pathToCreateObject = "/rest/insight/1.0/object/create"
         String pathArchitecturalCatalog = "http://simr.cbr.ru/sites/Dep_IT/Upr_AS/Otd_MITA/ITSolutions/_api/web/lists/GetByID('810f80a5-ffb3-4855-af9d-a692029b6b61')/items"
 
@@ -82,16 +69,16 @@ class SaveChangesToPluginIsight {
         nameAttributesObjectType.put("nameAttributeNameObjectType", nameAttributeNameObjectType)//82
         nameAttributesObjectType.put("nameAttributeFullNameObjectType", nameAttributeFullNameObjectType)//203
 
-        TransferObject to = new ObjectsAndAttributes().getIdAttributesAndAllObjects(authorizationAndURI, pathAllObjects,bodyGetAllObjects, nameAttributesObjectType,pathAllIdAttributes)
-        log.info("TransferObject = "+ to)
+        TransferObject to = new ObjectsAndAttributes().getIdAttributesAndAllObjects(authorizationAndURI, pathAllObjects, bodyGetAllObjects, nameAttributesObjectType, pathAllIdAttributes)
+        log.info("TransferObject = " + to)
 
         Map<String, String> idsAndAttribObjType = new HashMap<String, String>()
-        idsAndAttribObjType.put("idObjectType", (String)idObjectType)
-        idsAndAttribObjType.put("idAttributeNameObjectType",(String)to.getMapIdAttributesObjectType().get("idAttributeNameObjectType"))
-        idsAndAttribObjType.put("idAttributeFullNameObjectType",(String)to.getMapIdAttributesObjectType().get("idAttributeFullNameObjectType"))
-        idsAndAttribObjType.put("idAttributeIdObjectType", (String)to.getMapIdAttributesObjectType().get("idAttributeIdObjectType"))
+        idsAndAttribObjType.put("idObjectType", (String) idObjectType)
+        idsAndAttribObjType.put("idAttributeNameObjectType", (String) to.getMapIdAttributesObjectType().get("idAttributeNameObjectType"))
+        idsAndAttribObjType.put("idAttributeFullNameObjectType", (String) to.getMapIdAttributesObjectType().get("idAttributeFullNameObjectType"))
+        idsAndAttribObjType.put("idAttributeIdObjectType", (String) to.getMapIdAttributesObjectType().get("idAttributeIdObjectType"))
         log.info("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        List<String> idObjects =to.getIdObjectsList()
+        List<String> idObjects = to.getIdObjectsList()
         log.info("3333333333333333333333333333333")
 //        new CreateObject().createObject(authorizationAndURI, idsAndAttribObjType, idObjects, pathToCreateObject)
         new CreateObject().createObject(authorizationAndURI, ntlmAuthorization, idsAndAttribObjType, idObjects, pathArchitecturalCatalog, pathToCreateObject)

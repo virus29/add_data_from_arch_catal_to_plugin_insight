@@ -5,22 +5,19 @@ import groovyx.net.http.Method
 
 @Slf4j
 class ObjectScheme {
-    String getIdObjectScheme(Map authorizationAndURI, String pathAllObjectSchemas, String nameObjectScheme) {
+    private Object pathAllObjectSchemas = "/rest/insight/1.0/objectschema/list/"
 
-        def http = new HTTPBuilder((Object) authorizationAndURI.get("inURI"))
-        String idObjectScheme
+    int getIdObjectScheme() {
+        def http = new HTTPBuilder(SaveChangesToPluginIsight.inURI)
+        int idObjectScheme
         http.request(Method.GET, ContentType.JSON) {
             req ->
                 uri.path = pathAllObjectSchemas
-                //requestContetntType = ContentType.JSON;
-                headers.'Authorization' = authorizationAndURI.get("authorization")
+                headers.'Authorization' = AuthorizationParameters.BasicAuthorization
                 headers.'Accept' = 'application/json;charset=UTF-8'
                 response.success = { resp, json ->
-//                    String jsonString = json.text
-//                    def slurper = new JsonSlurper()
-//                    def doc = slurper.parseText(jsonString)
                     json.objectschemas.each {
-                        if (it.name.equals(nameObjectScheme)) {
+                        if (it.name.equals(SaveChangesToPluginIsight.nameObjectScheme)) {
                             idObjectScheme = it.id
                             log.info("idObjectScheme = " + idObjectScheme)
                         }

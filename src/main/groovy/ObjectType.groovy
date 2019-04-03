@@ -6,21 +6,21 @@ import groovyx.net.http.Method
 import javax.xml.ws.http.HTTPException
 
 @Slf4j
-class ObjectTypes {
-    String getIdObjectType(Map authorizationAndURI, String pathAllObjectTypes, String nameObjectType) throws HTTPException {
-        def http = new HTTPBuilder((Object) authorizationAndURI.get("inURI"))
-        String idObjectType
+class ObjectType {
+
+    int getIdObjectType(Object idObjectScheme) throws HTTPException {
+
+        String pathAllObjectTypes = "/rest/insight/1.0/objectschema/$idObjectScheme/objecttypes/flat/"
+        def http = new HTTPBuilder(SaveChangesToPluginIsight.inURI)
+        int idObjectType
         http.request(Method.GET, ContentType.JSON) {
             req ->
                 uri.path = pathAllObjectTypes
-                headers.'Authorization' = authorizationAndURI.get("authorization")
+                headers.'Authorization' = AuthorizationParameters.BasicAuthorization
                 headers.'Accept' = 'application/json;charset=UTF-8'
                 response.success = { resp, json ->
-//                    String jsonString = json.text
-//                    def slurper = new JsonSlurper()
-//                    def doc = slurper.parseText(jsonString)
                     json.each {
-                        if (it.name.equals(nameObjectType)) {
+                        if (it.name.equals(SaveChangesToPluginIsight.nameObjectType)) {
                             idObjectType = it.id
                             log.info("idObjectType = " + idObjectType)
                         }
